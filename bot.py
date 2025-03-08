@@ -3,11 +3,13 @@ import asyncio
 import requests
 import os
 
+import keyboards as kb
+
 from aiogram.enums import ParseMode
 from gtts import gTTS
 from googletrans import Translator
 from aiogram import Bot, Dispatcher, types, F
-from aiogram.types import Message, FSInputFile
+from aiogram.types import Message, FSInputFile, CallbackQuery
 from aiogram.filters import CommandStart, Command
 from config import API_KEY, API_URL, TOKEN
 
@@ -25,13 +27,41 @@ dp = Dispatcher()
 # Настройка логирования
 logging.basicConfig(level=logging.INFO)
 
+@dp.callback_query(F.data == 'show_everyone')
+async def show_everyone(callback: CallbackQuery):
+   await callback.message.edit_text('show_everyone', reply_markup=kb.inline_kb_option)
+
+@dp.callback_query(F.data == 'option1')
+async def option1(callback: CallbackQuery):
+   await callback.message.answer('Опция1')
+
+@dp.callback_query(F.data == 'option2')
+async def option2(callback: CallbackQuery):
+   await callback.message.answer('Опция2')
+
 @dp.message(Command('start'))
 async def send_welcome(message: Message):
-    await message.reply("Привет! Отправь мне /weather, и я пришлю тебе прогноз погоды в Екатеринбурге")
+    await message.reply("Привет! Отправь мне /weather, и я пришлю тебе прогноз погоды в Екатеринбурге", reply_markup=kb.main)
 
 @dp.message(Command('help'))
 async def help(message: types.Message):
     await message.answer('Умею: \n /start \n /help \n /weather Погода')
+
+@dp.message(F.text == "Привет")
+async def test_button(message: Message):
+   await message.answer(f'Привет, {message.from_user.first_name}')
+
+@dp.message(F.text == "Пока")
+async def test_button(message: Message):
+   await message.answer(f'До свидания, {message.from_user.first_name}')
+
+@dp.message(Command('links'))
+async def send_welcome(message: Message):
+    await message.reply("Вот тебе ссылки", reply_markup=kb.inline_kb)
+
+@dp.message(Command('dynamic'))
+async def test_button(message: Message):
+    await message.answer("Показать больше", reply_markup=kb.inline_kb_dynamic)
 
 @dp.message(F.photo)
 async def react_photo(message: Message):
